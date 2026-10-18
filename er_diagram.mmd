@@ -1,0 +1,53 @@
+erDiagram
+    %% BUSINESS: each subscription has exactly one customer and exactly one plan.
+    hw2_customers ||--o{ hw2_subscriptions : "has 0..N / belongs to 1"
+    hw2_plans ||--o{ hw2_subscriptions : "has 0..N / uses 1"
+    %% OFFLINE: each historical snapshot/event belongs to exactly one customer.
+    hw2_customers ||--o{ hw2_customer_features_offline : "OFFLINE 0..N versions"
+    hw2_customers ||--o{ hw2_training_events : "TRAINING 0..N events"
+    %% ONLINE: a customer may have zero or one materialized row.
+    hw2_customers ||--o| hw2_customer_features_online : "ONLINE 0..1 snapshot"
+
+    hw2_customers {
+        BIGINT customer_id PK
+        DATE signup_date "NOT NULL"
+        VARCHAR_2 country "NOT NULL"
+        TEXT acquisition_channel "NOT NULL"
+    }
+    hw2_plans {
+        INTEGER plan_id PK
+        TEXT plan_name UK "NOT NULL"
+        NUMERIC_8_2 monthly_price "NOT NULL"
+        TEXT internet_type "NOT NULL"
+        INTEGER contract_months "NOT NULL"
+    }
+    hw2_subscriptions {
+        BIGINT subscription_id PK
+        BIGINT customer_id FK "NOT NULL"
+        INTEGER plan_id FK "NOT NULL"
+        TIMESTAMPTZ started_at "NOT NULL"
+        TIMESTAMPTZ ended_at "NULL allowed"
+    }
+    hw2_customer_features_offline {
+        BIGINT customer_id PK,FK "NOT NULL"
+        INTEGER tickets_30d "NOT NULL"
+        NUMERIC_8_2 monthly_charge "NOT NULL"
+        INTEGER tenure_months "NOT NULL"
+        TIMESTAMPTZ valid_from PK "NOT NULL"
+        TIMESTAMPTZ valid_to "NULL means unbounded"
+    }
+    hw2_training_events {
+        BIGINT event_id PK "IDENTITY"
+        BIGINT customer_id FK "NOT NULL"
+        TIMESTAMPTZ prediction_ts "NOT NULL"
+        TIMESTAMPTZ label_horizon_end "NOT NULL"
+        BOOLEAN churn_in_horizon "NOT NULL label"
+    }
+    hw2_customer_features_online {
+        BIGINT customer_id PK,FK "NOT NULL"
+        INTEGER tickets_30d "NOT NULL"
+        NUMERIC_8_2 monthly_charge "NOT NULL"
+        INTEGER tenure_months "NOT NULL"
+        TIMESTAMPTZ feature_ts "NOT NULL"
+        TIMESTAMPTZ updated_at "NOT NULL"
+    }
